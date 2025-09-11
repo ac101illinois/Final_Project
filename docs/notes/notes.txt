@@ -1,0 +1,6 @@
+Ideas:
+
+1. Home screen
+2. Library page w/ search feature and remove feature
+3. page to search and add books
+4. Setting page where they can change the theme of the website?

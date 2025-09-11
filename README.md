@@ -1,0 +1,1 @@
+This application is geared toward readers who own a large amount of books and want to keep track of them. They will be able to add, remove, and search for books in their possession, review/rate them and categorize them for various purposes.
