@@ -11,3 +11,7 @@ Wireframes:
 - I made a page for the user to search for books to add to their physical library, with an "add" icon
 - I also made a page where the user could manage their library, with a "remove" icon, as well as a spot for their ratings and reviews
 
+Branching Strategy:
+
+I decided on a GitHub branching strategy because it is best suited for a smaller team. Since it is just me working on this project, this simple, easy approach to branching will be best
+
