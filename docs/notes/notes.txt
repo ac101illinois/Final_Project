@@ -4,3 +4,10 @@ Ideas:
 2. Library page w/ search feature and remove feature
 3. page to search and add books
 4. Setting page where they can change the theme of the website?
+
+Wireframes:
+
+- I sketched a home page with a title and image of books, as well as the other page links at the top
+- I made a page for the user to search for books to add to their physical library, with an "add" icon
+- I also made a page where the user could manage their library, with a "remove" icon, as well as a spot for their ratings and reviews
+
