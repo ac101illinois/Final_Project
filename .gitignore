@@ -1,0 +1,25 @@
+# Byte-compiled / Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# Django stuff:
+*.sqlite3
+*.log
+*.pot
+*.pyc
+*.mo
+media/
+staticfiles/
+
+# PyCharm
+.idea/
+
+# Jupyter Notebooks (if any)
+.ipynb_checkpoints/
