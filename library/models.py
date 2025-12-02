@@ -13,6 +13,7 @@ class Book(models.Model):
     total_pages = models.IntegerField()
     pages_read = models.IntegerField(default=0)
     list_name = models.ForeignKey(BookList, on_delete=models.SET_NULL, null=True)
+    is_currently_reading = models.BooleanField(default=False)
     def __str__(self):
         return self.title
 
