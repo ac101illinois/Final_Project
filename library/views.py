@@ -1,103 +1,94 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Book, BookList, ReadingStats, Reward
-
-# Create your views here.
-#Views: home, stats, search for book, add, delete, update progress,
-
-#Pages: Home, My Books, Stats, reading timer, session?, rewards page?
+from .models import Book, BookList, BookListItem, ReadingProgress, Reward
+from datetime import datetime
+from django.db.models import Sum, Count
+from django.utils.timezone import now
+import requests
+from django.db.models import Sum
 
 #Home/Dashboard
 def home_view(request):
-    books = Book.objects.filter(owner=request.user)
+    #current read:
+    current_progress = ReadingProgress.objects.filter(status='reading').first()
+    current_book = current_progress.book if current_progress else None
 
-    current_read = books.filter(is_currently_reading=True).first()
+    #points on dashboard
+    total_pages = ReadingProgress.objects.aggregate(total=Sum('pages_read'))['total'] or 0
+    points = int(total_pages / 10)
 
-    total_points = sum(b.pages_read for b in books)
-    goal = 1000
-    points_remaining = goal - total_points
-    progress_percentage = ((total_points / goal) * 100)
+    #showing next reward
+    next_reward = None
+    points_needed = 0
+    for reward in Reward.objects.order_by('required_points'):
+        if reward.required_points > points:
+            next_reward = reward
+            points_needed = reward.required_points - points
+            break
 
-    context = {
-        'current_read': current_read,
-        'total_points': total_points,
-        'goal': goal,
-        'progress_percentage': progress_percentage,
-        'points_remaining': points_remaining,
-        'books': books
-    }
+    #update progress:
+    if request.method == 'POST' and 'update_progress' in request.POST and current_book:
+        pages = request.POST.get('pages_read')
+        status = request.POST.get('status')
 
-    return render(request, 'home.html', context)
+        progress_result = ReadingProgress.objects.get_or_create(book=current_book)
+        progress = progress_result[0]
+        created = progress_result[1]
 
-#My Books
-def mybooks_view(request):
+        if pages:
+            progress.pages_read = int(pages)
+        if status in ['not_started', 'reading', 'finished']:
+            progress.status = status
+            if status == 'reading' and not progress.date_started:
+                progress.date_started = datetime.now().date()
+            if status == 'finished':
+                progress.date_finished = datetime.now().date()
+        progress.save()
+        return redirect('home')
 
-    query = request.GET.get("q", "")
-
-    books = Book.objects.filter(owner=request.user)
+    #search open library:
+    query = request.GET.get('q', '')
+    search_results = []
     if query:
-        books = books.filter(title__icontains=query)
+        url = 'https://openlibrary.org/search.json'
+        params = {'q': query, 'limit': 10}
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            for doc in data.get('docs', []):
+                edition_key = doc.get('edition_key', [''])[0]
+                search_results.append({
+                    'title': doc.get('title'),
+                    'author': ', '.join(doc.get('author_name', [])),
+                    'total_pages': doc.get('number_of_pages_median'),
+                    'cover_url': f"https://covers.openlibrary.org/b/olid/{edition_key}-L.jpg" if edition_key else '',
+                    'edition_key': edition_key,
+                })
 
-    book_lists = BookList.objects.filter(owner=request.user)
+    return render(request, 'home.html', {
+        'current_book': current_book,
+        'points': points,
+        'next_reward': next_reward,
+        'points_needed': points_needed,
+        'search_results': search_results,
+        'query': query,
+    })
+
+def mybooks_view(request):
+    query = request.GET.get('q', '')
+
+    if query:
+        books = Book.objects.filter(title__icontains=query)
+    else:
+        books = Book.objects.all()
+
+    lists = BookList.objects.all()
 
     context = {
-        'book_lists': book_lists,
         'books': books,
-        'query': query,
+        'lists': lists,
+        'query': query
     }
 
     return render(request, 'mybooks.html', context)
-
-def booklist_view(request):
-    book_list = get_object_or_404(BookList, owner=request.user)
-
-    books = book_list.books.all()
-
-    context = {
-        'book_lists': book_list,
-        'books': books,
-    }
-
-    return render(request, 'booklist.html', context)
-
-def addlist_view(request):
-    if request.method == "POST":
-        name = request.POST.get("name")
-        new_list = BookList(title=name, owner=request.user)
-        return redirect('mybooks')
-
-    return render(request, 'addlist.html')
-
-def editlist_view(request):
-    book_list = get_object_or_404(BookList, owner=request.user)
-
-    if request.method == "POST":
-        book_list.name == request.POST.get("name")
-        book_list.save()
-        return redirect('mybooks')
-
-    context = {
-        'book_list': book_list,
-    }
-
-    return render(request, 'editlist.html', context)
-
-
-def deletelist_view(request):
-    book_list = get_object_or_404(BookList, owner=request.user)
-
-    if request.method == "POST":
-        book_list.delete()
-        return redirect('mybooks')
-
-    context = {
-        'book_list': book_list,
-    }
-
-    return render(request, 'deletelist.html', context)
-
-
-
-
-
 
 

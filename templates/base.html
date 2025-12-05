@@ -1,10 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
+{% load static %}
+
+{% load static %}
+
+<html lang="en" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{% block title %}HomeLibrary{% endblock %}</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+
+<body class="h-full text-gray-900 flex flex-col">
+
+<!-- ================= TOP NAVIGATION ================= -->
+<nav class="w-full bg-white shadow-sm border-b sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+
+        <!-- LEFT: Logo + Name -->
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-black text-white flex items-center justify-center
+                        text-xl font-bold rounded">
+                HL
+            </div>
+            <span class="font-semibold text-2xl tracking-tight">HomeLibrary</span>
+        </div>
+
+        <!-- CENTER: Search Bar -->
+        <div class="flex-1 mx-8 hidden md:block">
+            <input
+                type="text"
+                placeholder="Search all books..."
+                class="w-full rounded-xl border border-gray-300 px-4 py-2
+                       focus:outline-none focus:ring-2 focus:ring-gray-300"
+            >
+        </div>
+
+        <!-- RIGHT: Navigation Links -->
+        <div class="flex items-center space-x-6 font-medium">
+
+            <a href="{% url 'library:home-view' %}"
+               class="text-gray-700 hover:text-black">Dashboard</a>
+
+        </div>
+    </div>
+</nav>
+
+<!-- ================= PAGE CONTENT ================= -->
+<main class="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+    {% block content %}
+    {% endblock %}
+</main>
 
 </body>
 </html>
