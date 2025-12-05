@@ -15,6 +15,9 @@ class BookList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     list_name = models.CharField(max_length=255)
     books = models.ManyToManyField(Book, through='BookListItem')
+    slug = models.SlugField(default="", null=False)
+    def __str__(self):
+        return self.list_name
 
 class BookListItem(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)

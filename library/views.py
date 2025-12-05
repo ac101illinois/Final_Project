@@ -91,4 +91,16 @@ def mybooks_view(request):
 
     return render(request, 'mybooks.html', context)
 
+def list_view(request, slug):
+
+    book_list = get_object_or_404(BookList, slug=slug)
+    books = book_list.books.all()
+
+    context = {
+        'books': books,
+        'book_list': book_list
+    }
+
+    return render(request, 'booklist.html', context)
+
 
