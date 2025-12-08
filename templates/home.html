@@ -1,3 +1,61 @@
 {% extends "base.html" %}
-
 {% load static %}
+
+{% block content %}
+
+<h2>Dashboard</h2>
+
+{% if current_book %}
+<div class="current-book">
+    <h3>Currently Reading:</h3>
+    <strong>{{ current_book.title }}</strong> by {{ current_book.author }}<br>
+    Pages read: {{ current_book.readingprogress.pages_read }} / {{ current_book.total_pages }}
+</div>
+{% else %}
+<p>You are not currently reading a book.</p>
+{% endif %}
+
+<p>Total Points: {{ points }}</p>
+
+{% if next_reward %}
+<p>Next Reward: {{ next_reward.name }} (in {{ points_needed }} points)</p>
+{% else %}
+<p>You’ve unlocked all rewards!</p>
+{% endif %}
+
+<hr>
+
+<h2>Search Books</h2>
+<form method="get">
+    <input type="text" name="q" placeholder="Search all books..." value="{{ query }}">
+    <button type="submit">Search</button>
+</form>
+
+{% if search_results %}
+    <h3>Results:</h3>
+    {% for book in search_results %}
+    <div class="book-result">
+        {% if book.cover_url %}
+        <img src="{{ book.cover_url }}" width="80">
+        {% endif %}
+        <strong>{{ book.title }}</strong><br>
+        {{ book.author }}<br>
+        {% if book.total_pages %}{{ book.total_pages }} pages{% endif %}<br>
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="add_book" value="1">
+            <input type="hidden" name="title" value="{{ book.title }}">
+            <input type="hidden" name="author" value="{{ book.author }}">
+            <input type="hidden" name="total_pages" value="{{ book.total_pages }}">
+            <input type="hidden" name="cover" value="{{ book.cover_url }}">
+            <input type="hidden" name="description" value="">
+
+            <button type="submit">Add to My Books</button>
+        </form>
+    </div>
+    <hr>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}

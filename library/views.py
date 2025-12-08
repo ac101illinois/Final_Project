@@ -3,6 +3,7 @@ from .models import Book, BookList, BookListItem, ReadingProgress, Reward
 from datetime import datetime
 from django.db.models import Sum, Count
 from django.utils.timezone import now
+from django.utils.text import slugify
 import requests
 from django.db.models import Sum
 
@@ -43,6 +44,32 @@ def home_view(request):
             if status == 'finished':
                 progress.date_finished = datetime.now().date()
         progress.save()
+        return redirect('home')
+
+    if request.method == 'POST' and 'add_book' in request.POST:
+        # Use a single default list (create if it doesn't exist)
+        library_list, _ = BookList.objects.get_or_create(
+            user=request.user,
+            list_name="My Books"
+        )
+
+        title = request.POST.get('title')
+        author = request.POST.get('author')
+        total_pages = request.POST.get('total_pages')
+        cover = request.POST.get('cover')
+        description = request.POST.get('description', "")
+
+        book, _ = Book.objects.get_or_create(
+            title=title,
+            author=author,
+            defaults={
+                "total_pages": total_pages,
+                "cover": cover,
+                "description": description
+            }
+        )
+
+        BookListItem.objects.get_or_create(book=book, book_list=library_list)
         return redirect('home')
 
     #search open library:
@@ -102,5 +129,57 @@ def list_view(request, slug):
     }
 
     return render(request, 'booklist.html', context)
+
+def addlist_view(request, slug):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        if name:
+            slug = slugify(name)
+            BookList.objects.create(name=name, slug=slug)
+            return redirect('mybooks')
+
+    return render(request, 'addlist.html')
+
+def editlist_view(request, slug):
+    book_list = get_object_or_404(BookList, slug=slug)
+
+    if request.method == 'POST':
+        new_name = request.POST.get('name')
+        if new_name:
+            book_list.name = new_name
+            book_list.slug = slugify(new_name)
+            book_list.save()
+            return redirect('mybooks')
+
+    return render(request, 'editlist.html')
+
+
+def deletelist_view(request, slug):
+    book_list = get_object_or_404(BookList, slug=slug)
+
+    if request.method == 'POST':
+        book_list.delete()
+        return redirect('mybooks')
+
+    return render(request, 'deletelist.html')
+
+def addbook_view(request, slug):
+    if request.method == 'POST':
+        book_list = get_object_or_404(BookList, slug=slug)
+
+        title = request.POST.get('title')
+        author = request.POST.get('author')
+        pages = request.POST.get('pages')
+        edition_key = request.POST.get('edition_key')
+        cover_url = request.POST.get('cover_url')
+
+        book, create = Book.objects.get_or_create(
+            title=title,
+            author=author,
+            pages=pages,
+            edition_key=edition_key,
+            cover_url=cover_url,
+
+        )
 
 
