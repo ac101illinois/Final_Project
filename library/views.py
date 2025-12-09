@@ -6,8 +6,10 @@ from django.utils.timezone import now
 from django.utils.text import slugify
 import requests
 from django.db.models import Sum
+from django.contrib.auth.decorators import login_required
 
 #Home/Dashboard
+@login_required(login_url='library:login')
 def home_view(request):
     #current read:
     current_progress = ReadingProgress.objects.filter(status='reading').first()
@@ -100,6 +102,7 @@ def home_view(request):
         'query': query,
     })
 
+@login_required(login_url='library:login')
 def mybooks_view(request):
     query = request.GET.get('q', '')
 
@@ -118,6 +121,7 @@ def mybooks_view(request):
 
     return render(request, 'mybooks.html', context)
 
+@login_required(login_url='library:login')
 def list_view(request, slug):
 
     book_list = get_object_or_404(BookList, slug=slug)
@@ -130,6 +134,7 @@ def list_view(request, slug):
 
     return render(request, 'booklist.html', context)
 
+@login_required(login_url='library:login')
 def addlist_view(request, slug):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -140,6 +145,7 @@ def addlist_view(request, slug):
 
     return render(request, 'addlist.html')
 
+@login_required(login_url='library:login')
 def editlist_view(request, slug):
     book_list = get_object_or_404(BookList, slug=slug)
 
@@ -153,7 +159,7 @@ def editlist_view(request, slug):
 
     return render(request, 'editlist.html')
 
-
+@login_required(login_url='library:login')
 def deletelist_view(request, slug):
     book_list = get_object_or_404(BookList, slug=slug)
 
@@ -163,6 +169,7 @@ def deletelist_view(request, slug):
 
     return render(request, 'deletelist.html')
 
+@login_required(login_url='library:login')
 def addbook_view(request, slug):
     if request.method == 'POST':
         book_list = get_object_or_404(BookList, slug=slug)
