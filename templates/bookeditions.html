@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Editions{% endblock %}
+
+{% block content %}
+
+<ul>
+    {% for ed in editions %}
+        <li>
+            {% if ed.cover_url %}
+                <img src="{{ ed.cover_url }}" style="height:150px;">
+            {% endif %}
+            <strong>{{ ed.title }}</strong> by {{ ed.author }}
+            {% if ed.pages %}
+                ({{ ed.pages }} pages)
+            {% endif %}
+
+            <!-- Add to My Books -->
+            <form method="post" action="{% url 'add_book_from_edition' %}">
+                {% csrf_token %}
+                <input type="hidden" name="edition_key" value="{{ ed.edition_key }}">
+                <button type="submit">Add to My Books</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

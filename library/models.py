@@ -7,6 +7,7 @@ class Book(models.Model):
         total_pages = models.PositiveIntegerField(null=True, blank=True)
         description = models.TextField(blank=True)
         cover = models.URLField(blank=True)
+        edition_key = models.CharField(max_length=50, blank=True, null=True)
 
         def __str__(self):
             return self.title
@@ -51,13 +52,13 @@ class ReadingProgress(models.Model):
             )
         ]
 
-class Reward(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    reward_type = models.CharField(max_length=100)
-    required_points = models.PositiveIntegerField()
-    date_earned = models.DateField()
-
-    def __str__(self):
-        return self.reward_type
-
-
+# class Reward(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     reward_type = models.CharField(max_length=100)
+#     required_points = models.PositiveIntegerField()
+#     date_earned = models.DateField()
+#
+#     def __str__(self):
+#         return self.reward_type
+#
+#

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Book, BookList, BookListItem, ReadingProgress, Reward
+from .models import Book, BookList, BookListItem, ReadingProgress
 from datetime import datetime
 from django.db.models import Sum, Count
 from django.utils.timezone import now
@@ -7,49 +7,17 @@ from django.utils.text import slugify
 import requests
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
+from .forms_auth import SignUpForm
+from django.contrib.auth import login
 
-#Home/Dashboard
 @login_required(login_url='library:login')
 def home_view(request):
-    #current read:
-    current_progress = ReadingProgress.objects.filter(status='reading').first()
-    current_book = current_progress.book if current_progress else None
+    import requests
 
-    #points on dashboard
-    total_pages = ReadingProgress.objects.aggregate(total=Sum('pages_read'))['total'] or 0
-    points = int(total_pages / 10)
-
-    #showing next reward
-    next_reward = None
-    points_needed = 0
-    for reward in Reward.objects.order_by('required_points'):
-        if reward.required_points > points:
-            next_reward = reward
-            points_needed = reward.required_points - points
-            break
-
-    #update progress:
-    if request.method == 'POST' and 'update_progress' in request.POST and current_book:
-        pages = request.POST.get('pages_read')
-        status = request.POST.get('status')
-
-        progress_result = ReadingProgress.objects.get_or_create(book=current_book)
-        progress = progress_result[0]
-        created = progress_result[1]
-
-        if pages:
-            progress.pages_read = int(pages)
-        if status in ['not_started', 'reading', 'finished']:
-            progress.status = status
-            if status == 'reading' and not progress.date_started:
-                progress.date_started = datetime.now().date()
-            if status == 'finished':
-                progress.date_finished = datetime.now().date()
-        progress.save()
-        return redirect('home')
-
+    # -----------------------------------
+    # 1. ADD BOOK TO USER'S BOOK LIST
+    # -----------------------------------
     if request.method == 'POST' and 'add_book' in request.POST:
-        # Use a single default list (create if it doesn't exist)
         library_list, _ = BookList.objects.get_or_create(
             user=request.user,
             list_name="My Books"
@@ -57,49 +25,71 @@ def home_view(request):
 
         title = request.POST.get('title')
         author = request.POST.get('author')
-        total_pages = request.POST.get('total_pages')
+        pages = request.POST.get('pages')
         cover = request.POST.get('cover')
-        description = request.POST.get('description', "")
+        edition_key = request.POST.get('edition_key')
+        description = request.POST.get('description', '')
 
+        # Create or get the book
         book, _ = Book.objects.get_or_create(
             title=title,
             author=author,
             defaults={
-                "total_pages": total_pages,
+                "total_pages": pages,
                 "cover": cover,
-                "description": description
+                "description": description,
+                "edition_key": edition_key,
             }
         )
 
+        # Add to user's book list
         BookListItem.objects.get_or_create(book=book, book_list=library_list)
-        return redirect('home')
 
-    #search open library:
-    query = request.GET.get('q', '')
-    search_results = []
-    if query:
-        url = 'https://openlibrary.org/search.json'
-        params = {'q': query, 'limit': 10}
-        response = requests.get(url, params=params)
-        if response.status_code == 200:
-            data = response.json()
-            for doc in data.get('docs', []):
-                edition_key = doc.get('edition_key', [''])[0]
-                search_results.append({
-                    'title': doc.get('title'),
-                    'author': ', '.join(doc.get('author_name', [])),
-                    'total_pages': doc.get('number_of_pages_median'),
-                    'cover_url': f"https://covers.openlibrary.org/b/olid/{edition_key}-L.jpg" if edition_key else '',
-                    'edition_key': edition_key,
-                })
+        return redirect('library:home-view')
 
-    return render(request, 'home.html', {
-        'current_book': current_book,
-        'points': points,
-        'next_reward': next_reward,
-        'points_needed': points_needed,
-        'search_results': search_results,
-        'query': query,
+    # -----------------------------------
+    # 2. SEARCH: RETURN EDITIONS ONLY
+    # -----------------------------------
+    query = request.GET.get('q') or ""
+    edition_results = []
+
+    if query.strip() != "":
+        search_url = "https://openlibrary.org/search.json"
+        resp = requests.get(search_url, params={"q": query, "limit": 10})
+
+        if resp.status_code == 200:
+            data = resp.json()
+
+            for doc in data.get("docs", []):
+                work_id = doc.get("key")  # "/works/OLxxxxxxW"
+                work_olid = work_id.replace("/works/", "")
+
+                # Fetch editions
+                editions_url = f"https://openlibrary.org/works/{work_olid}/editions.json?limit=50"
+                ed_resp = requests.get(editions_url)
+                if ed_resp.status_code != 200:
+                    continue
+
+                ed_data = ed_resp.json()
+
+                # Build edition cards
+                for ed in ed_data.get("entries", []):
+                    cover_id = ed.get("covers", [None])[0]
+
+                    edition_results.append({
+                        "title": ed.get("title") or doc.get("title") or "Unknown Title",
+                        "author": ", ".join(doc.get("author_name", [])),
+                        "format": ed.get("physical_format") or "Edition",
+                        "country": ed.get("publish_country", "") or "Unknown",
+                        "publish_date": ed.get("publish_date", ""),
+                        "pages": ed.get("number_of_pages"),
+                        "cover": f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg" if cover_id else "",
+                        "edition_key": ed.get("key").replace("/books/", "")
+                    })
+
+    return render(request, "home.html", {
+        "query": query,
+        "editions": edition_results,
     })
 
 @login_required(login_url='library:login')
@@ -135,39 +125,34 @@ def list_view(request, slug):
     return render(request, 'booklist.html', context)
 
 @login_required(login_url='library:login')
-def addlist_view(request, slug):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        if name:
-            slug = slugify(name)
-            BookList.objects.create(name=name, slug=slug)
-            return redirect('mybooks')
+def mybooks_view(request):
+    # Get the user's default "My Books" list
+    library_list, _ = BookList.objects.get_or_create(
+        user=request.user,
+        list_name="My Books"
+    )
 
-    return render(request, 'addlist.html')
+    if request.method == "POST" and "remove_book" in request.POST:
+        book_id = request.POST.get("book_id")
+        if book_id:
+            BookListItem.objects.filter(
+                book_list=library_list,
+                book_id=book_id
+            ).delete()
+        return redirect("library:mybooks-view")
 
-@login_required(login_url='library:login')
-def editlist_view(request, slug):
-    book_list = get_object_or_404(BookList, slug=slug)
+    # Base queryset: all books user owns
+    books = library_list.books.all()
 
-    if request.method == 'POST':
-        new_name = request.POST.get('name')
-        if new_name:
-            book_list.name = new_name
-            book_list.slug = slugify(new_name)
-            book_list.save()
-            return redirect('mybooks')
+    # Apply search filter
+    query = request.GET.get('q', "")
+    if query:
+        books = books.filter(title__icontains=query)
 
-    return render(request, 'editlist.html')
-
-@login_required(login_url='library:login')
-def deletelist_view(request, slug):
-    book_list = get_object_or_404(BookList, slug=slug)
-
-    if request.method == 'POST':
-        book_list.delete()
-        return redirect('mybooks')
-
-    return render(request, 'deletelist.html')
+    return render(request, "mybooks.html", {
+        "books": books,
+        "query": query,
+    })
 
 @login_required(login_url='library:login')
 def addbook_view(request, slug):
@@ -188,5 +173,18 @@ def addbook_view(request, slug):
             cover_url=cover_url,
 
         )
+
+
+def signup_view(request):
+    if request.method == "POST":
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            new_user = form.save()
+            login(request, new_user)
+            return redirect("library:home-view")
+    else:
+        form = SignUpForm()
+
+    return render(request, "signup.html", {"form": form})
 
 
