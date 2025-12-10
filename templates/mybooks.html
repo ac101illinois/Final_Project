@@ -1,63 +1,103 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Books{% endblock %}
+
 {% block content %}
 
-<h1>My Books</h1>
+<div class="container mt-4">
 
-<!-- Search Form -->
-<form method="GET" action="" class="search-form">
-    <input type="text" name="q" placeholder="Search my books" value="{{ query|default:'' }}">
-    <button type="submit">Search</button>
-</form>
+    <h1 class="mb-4">My Books</h1>
 
-<hr>
+    <!-- Search + Status Filter -->
+    <form method="GET" class="d-flex mb-4">
 
-{% if books %}
-    <div class="book-grid">
-        {% for book in books %}
-            <div class="book-card">
+        <input type="text"
+               name="q"
+               class="form-control me-2"
+               placeholder="Search my books..."
+               value="{{ search_query }}">
 
-                <!-- Book Cover -->
-                {% if book.cover %}
-                    <img src="{{ book.cover }}" alt="{{ book.title }}" class="book-cover">
-                {% else %}
-                    <div class="no-cover">No Cover Available</div>
-                {% endif %}
+        <select name="status" class="form-select me-2">
+            <option value="">All Statuses</option>
+            <option value="to_read" {% if filter_status == 'to_read' %}selected{% endif %}>To Read</option>
+            <option value="reading" {% if filter_status == 'reading' %}selected{% endif %}>Reading</option>
+            <option value="finished" {% if filter_status == 'finished' %}selected{% endif %}>Finished</option>
+        </select>
 
-                <!-- Book Info -->
-                <h3>{{ book.title }}</h3>
-                <p>{{ book.author }}</p>
+        <button class="btn btn-primary">Filter</button>
+    </form>
 
-                {% if book.total_pages %}
-                    <p>{{ book.total_pages }} pages</p>
-                {% endif %}
+    <!-- Books Grid -->
+    <div class="row g-4">
 
-                <!-- REMOVE BUTTON -->
-                <form method="POST" action="">
-                    {% csrf_token %}
-                    <input type="hidden" name="book_id" value="{{ book.id }}">
-                    <button type="submit" name="remove_book" class="remove-btn">
-                        Remove Book
-                    </button>
-                </form>
+        {% for b in books %}
+        {% with book=b.object %}
+        <div class="col-md-4 col-lg-3">
+            <div class="card shadow-sm h-100">
+
+                <!-- Cover -->
+                <img src="{{ book.cover }}"
+                     class="card-img-top"
+                     alt="Book Cover"
+                     style="height: 250px; object-fit: cover;">
+
+                <!-- Info -->
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <p class="text-muted">{{ book.author }}</p>
+
+                    <!-- Status Badge -->
+                    {% if b.status == 'reading' %}
+                        <span class="badge bg-primary">Reading</span>
+                    {% elif b.status == 'finished' %}
+                        <span class="badge bg-success">Finished</span>
+                    {% else %}
+                        <span class="badge bg-secondary">To Read</span>
+                    {% endif %}
+                </div>
+
+                <!-- Footer -->
+                <div class="card-footer d-flex justify-content-between align-items-center">
+
+                    <!-- REMOVE BOOK -->
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="book_id" value="{{ book.id }}">
+                        <button name="remove_book" class="btn btn-outline-danger btn-sm">
+                            Remove
+                        </button>
+                    </form>
+
+                    <!-- UPDATE STATUS (simple dropdown) -->
+                    <form method="POST" class="d-flex align-items-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="book_id" value="{{ book.id }}">
+                        <input type="hidden" name="update_status" value="1">
+
+                        <select name="new_status" class="form-select form-select-sm me-2" style="width: auto;">
+                            <option value="to_read" {% if b.status == 'to_read' %}selected{% endif %}>To Read</option>
+                            <option value="reading" {% if b.status == 'reading' %}selected{% endif %}>Reading</option>
+                            <option value="finished" {% if b.status == 'finished' %}selected{% endif %}>Finished</option>
+                        </select>
+
+                        <button type="submit" class="btn btn-outline-primary btn-sm">
+                            Update
+                        </button>
+                    </form>
+
+                </div>
 
             </div>
+        </div>
+        {% endwith %}
         {% endfor %}
+
     </div>
 
-{% else %}
-    <p>You have no books yet.</p>
-{% endif %}
+</div>
 
 <style>
-    .search-form {
-    margin-bottom: 20px;
-}
-
-.book-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-}
 
 .book-card {
     padding: 12px;

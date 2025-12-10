@@ -126,32 +126,92 @@ def list_view(request, slug):
 
 @login_required(login_url='library:login')
 def mybooks_view(request):
-    # Get the user's default "My Books" list
-    library_list, _ = BookList.objects.get_or_create(
+
+    # -------------------------
+    # REMOVE BOOK FROM LIST
+    # -------------------------
+    if request.method == "POST" and "remove_book" in request.POST:
+        book_id = request.POST.get("book_id")
+        if book_id:
+            book_list = BookList.objects.get(user=request.user, list_name="My Books")
+            BookListItem.objects.filter(book_list=book_list, book_id=book_id).delete()
+
+            # Also remove progress (optional but cleaner)
+            ReadingProgress.objects.filter(user=request.user, book_id=book_id).delete()
+
+        return redirect("library:mybooks-view")
+
+    # -------------------------
+    # UPDATE READING STATUS
+    # -------------------------
+    if request.method == "POST" and "update_status" in request.POST:
+        book_id = request.POST.get("book_id")
+        new_status = request.POST.get("new_status")
+
+        if book_id and new_status:
+            book = Book.objects.get(id=book_id)
+
+            progress, _ = ReadingProgress.objects.get_or_create(
+                user=request.user,
+                book=book
+            )
+
+            progress.status = new_status
+
+            # Auto-fill dates
+            if new_status == "reading" and not progress.date_started:
+                progress.date_started = now().date()
+
+            if new_status == "finished":
+                progress.date_finished = now().date()
+
+            progress.save()
+
+        return redirect("library:mybooks-view")
+
+    # -------------------------
+    # DISPLAY USER BOOKS
+    # -------------------------
+    search_query = request.GET.get("q", "").strip()
+    filter_status = request.GET.get("status", "")
+
+    # Get the user's "My Books" list
+    book_list, _ = BookList.objects.get_or_create(
         user=request.user,
         list_name="My Books"
     )
 
-    if request.method == "POST" and "remove_book" in request.POST:
-        book_id = request.POST.get("book_id")
-        if book_id:
-            BookListItem.objects.filter(
-                book_list=library_list,
-                book_id=book_id
-            ).delete()
-        return redirect("library:mybooks-view")
+    items = BookListItem.objects.filter(book_list=book_list).select_related("book")
 
-    # Base queryset: all books user owns
-    books = library_list.books.all()
+    books = []
+    for item in items:
+        book = item.book
+        progress = ReadingProgress.objects.filter(user=request.user, book=book).first()
 
-    # Apply search filter
-    query = request.GET.get('q', "")
-    if query:
-        books = books.filter(title__icontains=query)
+        books.append({
+            "object": book,
+            "status": progress.status if progress else "to_read",
+            "pages_read": progress.pages_read if progress else 0,
+        })
+
+    # Search filtering
+    if search_query:
+        books = [
+            b for b in books
+            if search_query.lower() in b["object"].title.lower()
+        ]
+
+    # Status filtering
+    if filter_status:
+        books = [
+            b for b in books
+            if b["status"] == filter_status
+        ]
 
     return render(request, "mybooks.html", {
         "books": books,
-        "query": query,
+        "search_query": search_query,
+        "filter_status": filter_status,
     })
 
 @login_required(login_url='library:login')

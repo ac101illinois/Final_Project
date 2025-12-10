@@ -23,23 +23,23 @@ class BookList(models.Model):
 class BookListItem(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     book_list = models.ForeignKey(BookList, on_delete=models.CASCADE)
-    is_reading = models.BooleanField(default=False)
-    pages_read = models.PositiveIntegerField(default=0)
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.book.title} in {self.book_list.list_name}"
 
 class ReadingProgress(models.Model):
 
     STATUS_CHOICES = [
-        ('not_started', 'Not Started'),
+        ('to_read', 'To Read'),
         ('reading', 'Currently Reading'),
         ('finished', 'Finished'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reading_progress')
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='progress_records')
+
     pages_read = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='to_read')
 
     date_started = models.DateField(blank=True, null=True)
     date_finished = models.DateField(blank=True, null=True)
@@ -51,6 +51,9 @@ class ReadingProgress(models.Model):
                 name='unique_user_book_progress'
             )
         ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.book.title} ({self.status})"
 
 # class Reward(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)
