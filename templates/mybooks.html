@@ -9,24 +9,14 @@
 
     <h1 class="mb-4">My Books</h1>
 
-    <!-- Search + Status Filter -->
-    <form method="GET" class="d-flex gap-3 mb-4">
-
+    <!-- Search -->
+    <form method="GET" class="d-flex mb-4">
         <input type="text"
                name="q"
-               class="form-control"
+               class="form-control me-2"
                placeholder="Search my books..."
                value="{{ search_query }}">
-
-        <select name="status" class="form-select">
-            <option value="">All Statuses</option>
-            <option value="to_read" {% if filter_status == 'to_read' %}selected{% endif %}>To Read</option>
-            <option value="reading" {% if filter_status == 'reading' %}selected{% endif %}>Reading</option>
-            <option value="finished" {% if filter_status == 'finished' %}selected{% endif %}>Finished</option>
-        </select>
-
-        <button class="btn btn-primary">Filter</button>
-
+        <button class="btn btn-primary">Search</button>
     </form>
 
     <!-- Books Grid -->
@@ -37,85 +27,91 @@
 
         <div class="col-md-4 col-lg-3">
 
-            <div class="card shadow-sm h-100 position-relative">
+            <div class="card shadow-sm h-100">
 
-                <!-- Make entire card clickable -->
-                <a href="{% url 'library:bookdetail-view' book.id %}" class="stretched-link"></a>
+                <!-- CLICKABLE AREA (only top portion) -->
+                <a href="{% url 'library:bookdetail-view' book.id %}"
+                   class="text-decoration-none text-dark"
+                   style="display:block;">
 
-                <!-- Cover -->
-                {% if book.cover %}
-                    <img src="{{ book.cover }}"
-                         class="card-img-top"
-                         alt="{{ book.title }}"
-                         style="height: 250px; object-fit: cover;">
-                {% else %}
-                    <div class="bg-light d-flex justify-content-center align-items-center"
-                         style="height: 250px;">
-                        <span class="text-muted">No Cover</span>
-                    </div>
-                {% endif %}
-
-                <!-- Body -->
-                <div class="card-body">
-                    <h5 class="card-title">{{ book.title }}</h5>
-                    <p class="text-muted">{{ book.author }}</p>
-
-                    {% if b.status == 'reading' %}
-                        <span class="badge bg-primary">Reading</span>
-                    {% elif b.status == 'finished' %}
-                        <span class="badge bg-success">Finished</span>
+                    {% if book.cover %}
+                        <img src="{{ book.cover }}"
+                             class="card-img-top"
+                             alt="Book Cover"
+                             style="height: 250px; object-fit: cover;">
                     {% else %}
-                        <span class="badge bg-secondary">To Read</span>
+                        <div class="bg-light d-flex align-items-center justify-content-center"
+                             style="height:250px;">
+                            No Cover
+                        </div>
                     {% endif %}
-                </div>
 
-                <!-- Footer (Remove + Status buttons) -->
-                <div class="card-footer d-flex justify-content-between align-items-center"
-                     style="position: relative; z-index: 5;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ book.title }}</h5>
+                        <p class="text-muted">{{ book.author }}</p>
+
+                        <!-- STATUS BADGE -->
+                        {% if b.status == 'reading' %}
+                            <span class="badge bg-primary">Reading</span>
+                        {% elif b.status == 'finished' %}
+                            <span class="badge bg-success">Finished</span>
+                        {% else %}
+                            <span class="badge bg-secondary">To Read</span>
+                        {% endif %}
+                    </div>
+
+                </a> <!-- END CLICKABLE AREA -->
+
+                <!-- FOOTER BUTTONS (Not part of the clickable link) -->
+                <div class="card-footer d-flex justify-content-between">
 
                     <!-- REMOVE BOOK -->
-                    <form method="POST" class="m-0 p-0">
+                    <form method="POST" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="book_id" value="{{ book.id }}">
-                        <button name="remove_book"
-                                class="btn btn-outline-danger btn-sm position-relative"
-                                style="z-index: 10;">
+                        <button name="remove_book" class="btn btn-outline-danger btn-sm">
                             Remove
                         </button>
                     </form>
 
                     <!-- STATUS DROPDOWN -->
-                    <form method="POST" class="m-0 p-0">
+                    <form method="POST" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="book_id" value="{{ book.id }}">
-                        <input type="hidden" name="update_status" value="1">
+                        <input type="hidden" name="update_status">
 
-                        <select name="new_status"
-                                class="form-select form-select-sm position-relative"
-                                style="z-index: 10; width: auto;"
-                                onchange="this.form.submit()">
+                        <div class="dropdown d-inline">
+                            <button class="btn btn-outline-primary btn-sm dropdown-toggle"
+                                    type="button"
+                                    id="statusDropdown{{ book.id }}"
+                                    data-bs-toggle="dropdown">
+                                {% if b.status == 'reading' %}
+                                    Reading
+                                {% elif b.status == 'finished' %}
+                                    Finished
+                                {% else %}
+                                    To Read
+                                {% endif %}
+                            </button>
 
-                            <option value="to_read" {% if b.status == 'to_read' %}selected{% endif %}>To Read</option>
-                            <option value="reading" {% if b.status == 'reading' %}selected{% endif %}>Reading</option>
-                            <option value="finished" {% if b.status == 'finished' %}selected{% endif %}>Finished</option>
-                        </select>
-
+                            <ul class="dropdown-menu">
+                                <li><button class="dropdown-item" name="new_status" value="to_read">To Read</button></li>
+                                <li><button class="dropdown-item" name="new_status" value="reading">Reading</button></li>
+                                <li><button class="dropdown-item" name="new_status" value="finished">Finished</button></li>
+                            </ul>
+                        </div>
                     </form>
 
                 </div>
 
             </div>
-
         </div>
 
         {% endwith %}
         {% endfor %}
 
     </div>
-
 </div>
-
-
 
 <style>
 .hover-shadow:hover {

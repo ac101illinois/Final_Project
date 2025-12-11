@@ -10,16 +10,15 @@ from django.contrib.auth.decorators import login_required
 from .forms_auth import SignUpForm
 from django.contrib.auth import login
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 
 @login_required(login_url='library:login')
 def home_view(request):
 
     user = request.user
 
-    # ---------------------------------------------------------
-    # 1. ADD BOOK TO USER'S LIST
-    # ---------------------------------------------------------
+# Add a book to the user's "mybooks" list
     if request.method == "POST" and "add_book" in request.POST:
         library_list, _ = BookList.objects.get_or_create(
             user=user,
@@ -32,7 +31,7 @@ def home_view(request):
         cover = request.POST.get("cover")
         edition_key = request.POST.get("edition_key")
 
-        # Create book
+        # Create or get the book they searched
         book, _ = Book.objects.get_or_create(
             title=title,
             author=author,
@@ -43,10 +42,10 @@ def home_view(request):
             }
         )
 
-        # Add to list
+        # Add the book to their list
         BookListItem.objects.get_or_create(book=book, book_list=library_list)
 
-        # Create reading progress default ("to_read")
+        # When the book is added, its status is automatically set to "to_read"
         ReadingProgress.objects.get_or_create(
             user=user,
             book=book,
@@ -55,9 +54,7 @@ def home_view(request):
 
         return redirect("library:home-view")
 
-    # ---------------------------------------------------------
-    # 2. SEARCH FUNCTION — retrieves editions
-    # ---------------------------------------------------------
+# Searching the Open library api for books
     query = request.GET.get("q", "").strip()
     search_results = []
 
@@ -76,7 +73,7 @@ def home_view(request):
 
                 work_id = work_key.replace("/works/", "")
 
-                # Fetch editions
+                # get each edition of the book they are searching
                 editions_url = f"https://openlibrary.org/works/{work_id}/editions.json?limit=50"
                 ed_resp = requests.get(editions_url)
                 if ed_resp.status_code != 200:
@@ -103,9 +100,7 @@ def home_view(request):
                     "editions": editions_list[:6]
                 })
 
-    # ---------------------------------------------------------
-    # 3. LOAD USER DASHBOARD (TBR + Current Reads)
-    # ---------------------------------------------------------
+# Dashboard displaying the books in the user's "my books" page
     book_list, _ = BookList.objects.get_or_create(
         user=user,
         list_name="My Books"
@@ -144,9 +139,7 @@ def home_view(request):
         elif progress.status == "to_read":
             to_read_books.append(data)
 
-    # ---------------------------------------------------------
-    # RENDER PAGE
-    # ---------------------------------------------------------
+
     return render(request, "home.html", {
         "query": query,
         "search_results": search_results,
@@ -158,9 +151,7 @@ def home_view(request):
 @login_required(login_url='library:login')
 def mybooks_view(request):
 
-    # -------------------------
-    # REMOVE BOOK FROM LIST
-    # -------------------------
+# remove book from "mybooks"
     if request.method == "POST" and "remove_book" in request.POST:
         book_id = request.POST.get("book_id")
         if book_id:
@@ -172,17 +163,13 @@ def mybooks_view(request):
 
         return redirect("library:mybooks-view")
 
-
-    # -------------------------
-    # UPDATE STATUS
-    # -------------------------
+#user can update the status of their books (to_read, finished, currently reading)
     if request.method == "POST" and "update_status" in request.POST:
         book_id = request.POST.get("book_id")
         new_status = request.POST.get("new_status")
 
         if book_id and new_status:
             book = Book.objects.get(id=book_id)
-
             progress, _ = ReadingProgress.objects.get_or_create(
                 user=request.user,
                 book=book
@@ -200,10 +187,7 @@ def mybooks_view(request):
 
         return redirect("library:mybooks-view")
 
-
-    # -------------------------
-    # UPDATE READING PROGRESS
-    # -------------------------
+# user can update their reading progress if a book's status is "currently reading"
     if request.method == "POST" and "update_progress" in request.POST:
         book_id = request.POST.get("book_id")
         pages_read = request.POST.get("pages_read")
@@ -217,11 +201,12 @@ def mybooks_view(request):
         if pages_read:
             progress.pages_read = int(pages_read)
 
-            # Auto-start date
+            # if a start date is not already specified, the day they add progress is the start date
             if progress.status == "reading" and not progress.date_started:
                 progress.date_started = datetime.now().date()
 
-            # Auto-complete
+            # if the user adds progress and the page count is equal or more than the pages of the book,
+            #it is automatically set as "finished"
             book = Book.objects.get(id=book_id)
             if book.total_pages and progress.pages_read >= book.total_pages:
                 progress.status = "finished"
@@ -230,14 +215,12 @@ def mybooks_view(request):
         progress.save()
         return redirect("library:mybooks-view")
 
-
-    # -------------------------
-    # DISPLAY USER BOOKS
-    # -------------------------
+# displaying the user's books in mybooks page
+#the user can search through the books they own
     search_query = request.GET.get("q", "").strip()
     filter_status = request.GET.get("status", "")
 
-    # Get list
+# display the entire list of books they own
     book_list, _ = BookList.objects.get_or_create(
         user=request.user,
         list_name="My Books"
@@ -255,14 +238,6 @@ def mybooks_view(request):
             "status": progress.status if progress else "to_read",
             "pages_read": progress.pages_read if progress else 0,
         })
-
-    # Search filter
-    if search_query:
-        books = [b for b in books if search_query.lower() in b["object"].title.lower()]
-
-    # Status filter
-    if filter_status:
-        books = [b for b in books if b["status"] == filter_status]
 
     return render(request, "mybooks.html", {
         "books": books,

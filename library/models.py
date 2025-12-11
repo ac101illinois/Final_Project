@@ -54,14 +54,3 @@ class ReadingProgress(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.book.title} ({self.status})"
-
-# class Reward(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     reward_type = models.CharField(max_length=100)
-#     required_points = models.PositiveIntegerField()
-#     date_earned = models.DateField()
-#
-#     def __str__(self):
-#         return self.reward_type
-#
-#
