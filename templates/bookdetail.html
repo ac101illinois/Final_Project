@@ -1,10 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}{{ book.title }}{% endblock %}
 
-</body>
-</html>
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- Book Card -->
+    <div class="card shadow-sm">
+        <div class="row g-0">
+
+            <!-- Cover -->
+            <div class="col-md-4">
+                {% if book.cover %}
+                    <img src="{{ book.cover }}" class="img-fluid rounded-start" alt="{{ book.title }}">
+                {% else %}
+                    <div class="p-4 text-center bg-light">No Cover Available</div>
+                {% endif %}
+            </div>
+
+            <!-- Details -->
+            <div class="col-md-8">
+                <div class="card-body">
+
+                    <h2 class="card-title">{{ book.title }}</h2>
+                    <p class="text-muted mb-2">{{ book.author }}</p>
+
+                    <!-- STATUS BADGE -->
+                    {% if progress %}
+                        {% if progress.status == "reading" %}
+                            <span class="badge bg-primary">Currently Reading</span>
+                        {% elif progress.status == "finished" %}
+                            <span class="badge bg-success">Finished</span>
+                        {% else %}
+                            <span class="badge bg-secondary">To Read</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-secondary">To Read</span>
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- DESCRIPTION -->
+                    {% if book.description %}
+                        <p>{{ book.description }}</p>
+                    {% else %}
+                        <p class="text-muted fst-italic">No description available.</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- PROGRESS SECTION (ONLY IF READING) -->
+                    {% if progress and progress.status == "reading" %}
+                        {% if book.total_pages %}
+                            <p><strong>{{ progress.pages_read }} / {{ book.total_pages }} pages</strong></p>
+
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar bg-success"
+                                     style="width: {{ progress_pct }}%;">
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- UPDATE PROGRESS FORM -->
+                        <form method="POST" action="{% url 'library:mybooks-view' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="book_id" value="{{ book.id }}">
+                            <input type="hidden" name="update_progress" value="1">
+
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <input type="number"
+                                           class="form-control"
+                                           name="pages_read"
+                                           min="0"
+                                           max="{{ book.total_pages }}"
+                                           value="{{ progress.pages_read }}">
+                                </div>
+
+                                <div class="col-auto">
+                                    <button class="btn btn-success">Update Progress</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <hr>
+                    {% endif %}
+
+                    <!-- STATUS DROPDOWN (always available) -->
+                    <form method="POST" action="{% url 'library:mybooks-view' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="book_id" value="{{ book.id }}">
+                        <input type="hidden" name="update_status" value="1">
+
+                        <label class="form-label fw-bold">Change Status</label>
+                        <select class="form-select w-auto" name="new_status" onchange="this.form.submit()">
+                            <option value="to_read"
+                                    {% if progress and progress.status == 'to_read' %}selected{% endif %}>
+                                To Read
+                            </option>
+
+                            <option value="reading"
+                                    {% if progress and progress.status == 'reading' %}selected{% endif %}>
+                                Currently Reading
+                            </option>
+
+                            <option value="finished"
+                                    {% if progress and progress.status == 'finished' %}selected{% endif %}>
+                                Finished
+                            </option>
+                        </select>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="{% url 'library:mybooks-view' %}" class="btn btn-outline-secondary mt-4">
+        ← Back to My Books
+    </a>
+
+</div>
+
+{% endblock %}

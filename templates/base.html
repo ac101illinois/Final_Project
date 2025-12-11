@@ -32,11 +32,15 @@
                 <ul class="navbar-nav ms-auto">
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'library:home-view' %}">Search Books</a>
+                        <a class="nav-link" href="{% url 'library:home-view' %}">Dashboard</a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'library:mybooks-view' %}">My Books</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'library:stats-view' %}">Reading Stats</a>
                     </li>
 
                 </ul>

@@ -1,10 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% load static %}
 
-</body>
-</html>
+{% block title %}My Stats{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <h2 class="text-center mb-4">Your Reading Stats</h2>
+
+    <!-- FOUR STAT CARDS -->
+    <div class="row g-4 mb-5">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm text-center p-3">
+                <h5>Books Read This Year</h5>
+                <h2>{{ books_read_this_year }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm text-center p-3">
+                <h5>Total Books</h5>
+                <h2>{{ total_books }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm text-center p-3">
+                <h5>Currently Reading</h5>
+                <h2>{{ currently_reading }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm text-center p-3">
+                <h5>Pages Read This Year</h5>
+                <h2>{{ pages_read_this_year }}</h2>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- GRAPHS ROW -->
+    <div class="row g-4">
+
+        <!-- Books Per Month -->
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3">
+                <h5 class="text-center">Books Read Per Month ({{ year }})</h5>
+                <canvas id="booksChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pages Per Month -->
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3">
+                <h5 class="text-center">Pages Read Per Month ({{ year }})</h5>
+                <canvas id="pagesChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const booksData = {{ books_per_month|safe }};
+const pagesData = {{ pages_per_month|safe }};
+
+const labels = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+];
+
+// BOOKS CHART
+new Chart(document.getElementById("booksChart"), {
+    type: "bar",
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "Books Read",
+            data: booksData,
+            backgroundColor: "#4A6CF7"
+        }]
+    },
+});
+
+// PAGES CHART
+new Chart(document.getElementById("pagesChart"), {
+    type: "line",
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "Pages Read",
+            data: pagesData,
+            borderColor: "#FF7A59",
+            fill: false,
+            tension: 0.3
+        }]
+    },
+});
+</script>
+
+<!-- DOWNLOAD BUTTONS -->
+    <div class="text-center mb-5">
+
+        <a href="{% url 'library:export-mybooks-csv' %}"
+           class="btn btn-outline-primary btn-lg me-3">
+            Download CSV
+        </a>
+
+        <a href="{% url 'library:export-mybooks-json' %}"
+           class="btn btn-outline-success btn-lg">
+            Download JSON
+        </a>
+
+    </div>
+
+{% endblock %}

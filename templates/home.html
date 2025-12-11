@@ -1,61 +1,169 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
 {% block content %}
 
-<h2>Search All Books</h2>
+<div class="container py-4">
 
-<form method="get">
-    <input type="text"
-           name="q"
-           placeholder="Search all books..."
-           value="{{ query }}">
-    <button type="submit">Search</button>
-</form>
+    <!-- Greeting -->
+    <h2 class="text-center mb-2">
+        Welcome back, <span class="text-primary">{{ request.user.username }}</span>!
+    </h2>
+    <h4 class="text-center mb-4 text-muted">
+        Let's keep reading through your physical library!
+    </h4>
 
-<hr>
+    <!-- Search bar -->
+    <form method="GET" action="{% url 'library:home-view' %}"
+          class="d-flex justify-content-center mb-5">
+        <input type="text"
+               name="q"
+               class="form-control form-control-lg w-75 rounded-pill shadow-sm"
+               placeholder="Search all books..."
+               value="{{ query }}">
+    </form>
 
-{% if editions %}
-    <h3>Matching Editions</h3>
 
-    <div class="edition-grid">
-        {% for ed in editions %}
-            <div class="edition-card">
+    <!-- If searching, show results -->
+    {% if search_results %}
+    <div class="card shadow-sm p-4 mb-5">
+        <h4 class="mb-4">Search Results</h4>
 
-                {% if ed.cover %}
-                    <img src="{{ ed.cover }}" class="edition-cover">
-                {% endif %}
+        {% for r in search_results %}
+        <div class="mb-4 pb-3 border-bottom">
 
-                <h4>{{ ed.title }}</h4>
-                <p><strong>by:</strong> {{ ed.author }}</p>
+            <h5>{{ r.title }}</h5>
+            <p class="text-muted">{{ r.author }}</p>
 
-                <p><strong>Format:</strong> {{ ed.format }}</p>
-                <p><strong>Country:</strong> {{ ed.country }}</p>
+            <div class="ms-4">
 
-                {% if ed.publish_date %}
-                    <p><strong>Year:</strong> {{ ed.publish_date }}</p>
-                {% endif %}
+                {% for e in r.editions %}
+                <div class="d-flex align-items-center mb-3">
 
-                {% if ed.pages %}
-                    <p>{{ ed.pages }} pages</p>
-                {% endif %}
+                    {% if e.cover %}
+                        <img src="{{ e.cover }}" class="rounded shadow-sm me-3"
+                             style="height: 90px; width: 65px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light rounded shadow-sm me-3
+                                    d-flex align-items-center justify-content-center"
+                             style="height: 90px; width: 65px;">
+                            No Cover
+                        </div>
+                    {% endif %}
 
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="add_book" value="1">
+                    <div class="flex-grow-1 small">
 
-                    <input type="hidden" name="title" value="{{ ed.title }}">
-                    <input type="hidden" name="author" value="{{ ed.author }}">
-                    <input type="hidden" name="pages" value="{{ ed.pages }}">
-                    <input type="hidden" name="cover" value="{{ ed.cover }}">
-                    <input type="hidden" name="edition_key" value="{{ ed.edition_key }}">
-                    <input type="hidden" name="description" value="">
+                        <div>
+                            {% if e.format %}<strong>{{ e.format }}</strong> · {% endif %}
+                            {% if e.pages %}{{ e.pages }} pages · {% endif %}
+                            {% if e.publish_date %}{{ e.publish_date }}{% endif %}
+                        </div>
 
-                    <button type="submit">Add to My Books</button>
-                </form>
+                        <!-- Add button -->
+                        <form method="POST" class="mt-1 d-inline-block">
+                            {% csrf_token %}
+                            <input type="hidden" name="add_book" value="1">
+                            <input type="hidden" name="edition_key" value="{{ e.edition_key }}">
+                            <input type="hidden" name="title" value="{{ r.title }}">
+                            <input type="hidden" name="author" value="{{ r.author }}">
+                            <input type="hidden" name="pages" value="{{ e.pages }}">
+                            <input type="hidden" name="cover" value="{{ e.cover }}">
 
+                            <button class="btn btn-primary btn-sm">Add to My Books</button>
+                        </form>
+
+                    </div>
+                </div>
+                {% endfor %}
             </div>
+        </div>
         {% endfor %}
     </div>
-{% endif %}
+    {% endif %}
+
+
+    <!-- Dashboard Layout -->
+    <div class="row g-4">
+
+        <!-- LEFT SIDE - TO READ -->
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm p-4 mb-4">
+                <h4>Your To-Read Pile ({{ to_read_books|length }})</h4>
+
+                {% if to_read_books %}
+                <div class="d-flex gap-4 overflow-auto pt-3">
+
+                    {% for b in to_read_books %}
+                    <div style="min-width: 150px;">
+
+                        {% if b.cover %}
+                            <img src="{{ b.cover }}"
+                                 class="rounded shadow-sm"
+                                 style="height: 200px; width: 140px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light rounded shadow-sm d-flex align-items-center justify-content-center"
+                                 style="height: 200px; width: 140px;">
+                                No Cover
+                            </div>
+                        {% endif %}
+
+                        <p class="mt-2 mb-0 fw-semibold">{{ b.title }}</p>
+                        <p class="text-muted small">{{ b.author }}</p>
+
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                    <p class="text-muted mt-3">No books in your To-Read list yet.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT SIDE — CURRENT READS -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm p-4 h-100">
+
+                <h4 class="mb-4">Current Reads ({{ current_reads|length }})</h4>
+
+                {% for b in current_reads %}
+                <div class="d-flex mb-4">
+
+                    {% if b.cover %}
+                        <img src="{{ b.cover }}" class="rounded shadow-sm me-3"
+                             style="height: 120px; width: 90px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light rounded shadow-sm me-3 d-flex align-items-center justify-content-center"
+                             style="height: 120px; width: 90px;">
+                            No Cover
+                        </div>
+                    {% endif %}
+
+                    <div>
+                        <h5 class="mb-1">{{ b.title }}</h5>
+                        <p class="text-muted mb-1">{{ b.author }}</p>
+                        <span class="badge bg-primary">Reading</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">You're not reading anything right now.</p>
+                {% endfor %}
+
+                <a class="btn btn-primary w-100 mt-auto" href="{% url 'library:mybooks-view' %}">
+                    View All My Books
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
 
 <style>
 .edition-grid {
