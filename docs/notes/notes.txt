@@ -1,0 +1,8 @@
+Key Lessons Learned:
+
+I had never done anything like what we've learned in class before, so I am taking away a lot! Mainly I've
+learned how all the models, views and urls work with each other and what they specifically do for the website.
+
+I've also learned a lot about pycharm and how to utulize the terminal effectively.
+
+For this specific project,
