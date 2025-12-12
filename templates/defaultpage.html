@@ -10,12 +10,13 @@
 <div style="text-align: center;">
     <img src="{% static 'homelibrarylogo.png' %}"
          alt="HomeLibrary Logo"
-         class="default-logo"
-         style="margin-bottom: 10px;">
-
-    <h2 style="text-align: center; color: #c84747; margin-bottom: 12px;">
+         class="default-logo">
+    <div class = "tagline-container">
+    <p class="tagline"
+       style="text-align: center; color: #c84747; margin-bottom: 50px;">
         A website for readers/book buyers to manage their physical library and read through their physical TBR
-    </h2>
+    </p>
+    </div>
 
     <div style="margin-top: 8px;">
         <a href="{% url 'library:login' %}"

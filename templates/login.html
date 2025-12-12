@@ -2,12 +2,31 @@
 {% load static %}
 
 {% block content %}
+  <div class="text-center container" style="max-width: 480px; margin-top: 40px;">
 
-<h2>Login</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Log in</button>
-</form>
+    <h2 class="mb-3" style="color: #c84747;">
+      Welcome back to HomeLibrary!
+    </h2>
 
+    <form method="post" class="card p-3 border shadow-sm">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <button
+        type="submit"
+        class="btn w-100"
+        style="background-color: #af6a63; color: white;"
+      >
+        Log in
+      </button>
+    </form>
+
+    <p class="mt-3 text-muted">
+      Don’t have an account?
+      <a style="color: #af6a63;" href="{% url 'library:signup' %}">
+        Sign up
+      </a>
+    </p>
+
+  </div>
 {% endblock %}

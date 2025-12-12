@@ -14,7 +14,7 @@
         Let's keep reading through your physical library!
     </h4>
 
-    <!-- Search bar -->
+    <!-- search api books -->
     <form method="GET" action="{% url 'library:home-view' %}"
           class="d-flex justify-content-center mb-5">
         <input type="text"
@@ -25,7 +25,7 @@
     </form>
 
 
-    <!-- If searching, show results -->
+    <!-- search results -->
     {% if search_results %}
     <div class="card shadow-sm p-4 mb-5">
         <h4 class="mb-4">Search Results</h4>
@@ -60,7 +60,7 @@
                             {% if e.publish_date %}{{ e.publish_date }}{% endif %}
                         </div>
 
-                        <!-- button to add book -->
+                        <!-- add book -->
                         <form method="POST" class="mt-1 d-inline-block">
                             {% csrf_token %}
                             <input type="hidden" name="add_book" value="1">
@@ -70,7 +70,8 @@
                             <input type="hidden" name="pages" value="{{ e.pages }}">
                             <input type="hidden" name="cover" value="{{ e.cover }}">
 
-                            <button class="btn btn-primary btn-sm">Add to My Books</button>
+                            <button class="btn btn-sm"
+                                    style="background-color: #fac0b9; color:white;">Add to My Books</button>
                         </form>
 
                     </div>
@@ -83,10 +84,10 @@
     {% endif %}
 
 
-    <!-- Dashboard Layout -->
+    <!-- dashboard starts -->
     <div class="row g-4">
 
-        <!-- LEFT SIDE - TO READ -->
+        <!-- left section, tbr -->
         <div class="col-lg-8">
 
             <div class="card shadow-sm p-4 mb-4">
@@ -124,7 +125,7 @@
         </div>
 
 
-        <!-- RIGHT SIDE — CURRENT READS -->
+        <!-- right section, current reads -->
         <div class="col-lg-4">
             <div class="card shadow-sm p-4 h-100">
 
@@ -153,7 +154,9 @@
                 <p class="text-muted">You're not reading anything right now.</p>
                 {% endfor %}
 
-                <a class="btn btn-primary w-100 mt-auto" href="{% url 'library:mybooks-view' %}">
+                <a class="btn w-100 mt-auto"
+                   style= "background-color: #fac0b9; color:white;"
+                   href="{% url 'library:mybooks-view' %}">
                     View All My Books
                 </a>
             </div>
@@ -162,30 +165,5 @@
     </div>
 
 </div>
-
-
-<style>
-.edition-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.edition-card {
-    border: 1px solid #ccc;
-    padding: 12px;
-    border-radius: 6px;
-    background: #fafafa;
-    text-align: center;
-}
-
-.edition-cover {
-    width: 120px;
-    height: auto;
-    margin-bottom: 10px;
-    border-radius: 4px;
-}
-</style>
 
 {% endblock %}

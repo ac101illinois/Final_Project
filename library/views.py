@@ -328,7 +328,7 @@ def books_read_chart(request):
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
     fig, ax = plt.subplots(figsize=(6, 2.5), dpi=150)
-    ax.bar(months, monthly_counts, color="#4B9CD3")
+    ax.bar(months, monthly_counts, color="#fac0b9")
     ax.set_title(f"Books Read in {year}", fontsize=10)
     ax.set_ylabel("Books", fontsize=9)
     ax.tick_params(axis="x", rotation=45, labelsize=8)
@@ -366,8 +366,10 @@ def books_status_pie_chart(request):
         status_counts["Finished"],
     ]
 
+    colors = ["#fac0b9", "#af6a63", "#c84747"]
+
     fig = plt.figure(figsize=(4, 4), dpi=100)
-    plt.pie(sizes, labels=labels, autopct="%1.0f%%")
+    plt.pie(sizes, labels=labels, colors=colors, autopct="%1.0f%%")
 
     buffer = BytesIO()
     fig.savefig(buffer, format="png")
@@ -375,8 +377,6 @@ def books_status_pie_chart(request):
     buffer.seek(0)
 
     return HttpResponse(buffer.getvalue(), content_type="image/png")
-
-
 
 @login_required(login_url='library:login')
 def export_mybooks_csv(request):

@@ -9,17 +9,18 @@
 
     <h1 class="mb-4">My Books</h1>
 
-    <!-- Search -->
+    <!-- Search mybooks -->
     <form method="GET" class="d-flex mb-4">
         <input type="text"
                name="q"
                class="form-control me-2"
                placeholder="Search my books..."
                value="{{ search_query }}">
-        <button class="btn btn-primary">Search</button>
+        <button class="btn"
+                style="background-color:c84747; color:white;">Search</button>
     </form>
 
-    <!-- Books Grid -->
+    <!-- grid for books starts -->
     <div class="row g-4">
 
         {% for b in books %}
@@ -29,7 +30,7 @@
 
             <div class="card shadow-sm h-100">
 
-                <!-- CLICKABLE AREA (only top portion) -->
+                <!-- top area of books, clicking brings you to book detail view -->
                 <a href="{% url 'library:bookdetail-view' book.id %}"
                    class="text-decoration-none text-dark"
                    style="display:block;">
@@ -38,7 +39,7 @@
                         <img src="{{ book.cover }}"
                              class="card-img-top"
                              alt="Book Cover"
-                             style="height: 250px; object-fit: cover;">
+                             style="height: auto; object-fit: contain;">
                     {% else %}
                         <div class="bg-light d-flex align-items-center justify-content-center"
                              style="height:250px;">
@@ -50,7 +51,7 @@
                         <h5 class="card-title">{{ book.title }}</h5>
                         <p class="text-muted">{{ book.author }}</p>
 
-                        <!-- STATUS BADGE -->
+                        <!-- status -->
                         {% if b.status == 'reading' %}
                             <span class="badge bg-primary">Reading</span>
                         {% elif b.status == 'finished' %}
@@ -60,21 +61,22 @@
                         {% endif %}
                     </div>
 
-                </a> <!-- END CLICKABLE AREA -->
+                </a>
 
-                <!-- FOOTER BUTTONS (Not part of the clickable link) -->
+                <!-- box footer starts -->
                 <div class="card-footer d-flex justify-content-between">
 
-                    <!-- REMOVE BOOK -->
+                    <!-- remove book -->
                     <form method="POST" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="book_id" value="{{ book.id }}">
-                        <button name="remove_book" class="btn btn-outline-danger btn-sm">
+                        <button name="remove_book" class="btn btn-sm"
+                                style="background-color: c84747; color: white;">
                             Remove
                         </button>
                     </form>
 
-                    <!-- STATUS DROPDOWN -->
+                    <!-- status change -->
                     <form method="POST" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="book_id" value="{{ book.id }}">
@@ -112,49 +114,5 @@
 
     </div>
 </div>
-
-<style>
-.hover-shadow:hover {
-    transform: translateY(-3px);
-    box-shadow: 0px 6px 15px rgba(0,0,0,0.15);
-    transition: 0.15s ease-in-out;
-}
-
-
-.book-card {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    text-align: center;
-    background: #fafafa;
-}
-
-.book-cover {
-    width: 100%;
-    height: auto;
-    border-radius: 5px;
-}
-
-.no-cover {
-    width: 100%;
-    padding: 40px 0;
-    background: #eee;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-.remove-btn {
-    background-color: #c0392b;
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.remove-btn:hover {
-    background-color: #e74c3c;}
-</style>
 
 {% endblock %}

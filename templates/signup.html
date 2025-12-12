@@ -3,19 +3,20 @@
 {% block title %}Sign up{% endblock %}
 
 {% block content %}
-  <div class="container" style="max-width: 480px;">
-    <h2 class="mb-3">Create an account</h2>
+  <div class="text-center container" style="max-width: 480px; margin-top: 40px;">
+    <h2 class="mb-3"
+        style="color: #c84747;">Create an account</h2>
 
     <form method="post" class="card p-3 border shadow-sm">
       {% csrf_token %}
       {{ form.as_p }}
 
-      <button type="submit" class="btn btn-success w-100">Create account</button>
+      <button type="submit" class="btn w-100" style="background-color: fac0b9; color: white;">Create account</button>
     </form>
 
     <p class="mt-3 text-muted">
       Already have an account?
-      <a href="{% url 'library:login' %}">Log in</a>
+      <a style = "color: af6a63;" href="{% url 'library:login' %}">Log in</a>
     </p>
   </div>
 {% endblock %}

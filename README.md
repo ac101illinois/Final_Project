@@ -1,1 +1,11 @@
-This application is geared toward readers who own a large amount of books and want to keep track of them. They will be able to add, remove, and search for books in their possession, review/rate them and categorize them for various purposes.
+Project overview
+
+Internal tester's login credentials: mohitg2 / graingerlibrary
+
+Internal guest's login credentials: infoadmins / uiucinfo
+
+List of all Table 2 and Table 3 topics implemented
+
+Bonus features, if applicable
+
+Screenshots of the app and deployed version
