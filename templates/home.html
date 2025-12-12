@@ -7,9 +7,8 @@
 
 <div class="container py-4">
 
-    <!-- Greeting -->
     <h2 class="text-center mb-2">
-        Welcome back, <span class="text-primary">{{ request.user.username }}</span>!
+        Welcome back, <span style="color:#c84747">{{ request.user.username }}</span>!
     </h2>
     <h4 class="text-center mb-4 text-muted">
         Let's keep reading through your physical library!
@@ -61,7 +60,7 @@
                             {% if e.publish_date %}{{ e.publish_date }}{% endif %}
                         </div>
 
-                        <!-- Add button -->
+                        <!-- button to add book -->
                         <form method="POST" class="mt-1 d-inline-block">
                             {% csrf_token %}
                             <input type="hidden" name="add_book" value="1">

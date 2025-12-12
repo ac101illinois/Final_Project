@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}My Library{% endblock %}</title>
+    <title>{% block title %}HomeLibrary{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
 
-    <!-- Bootstrap CSS -->
+    <!-- bookstrap link -->
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet"
@@ -12,23 +13,15 @@
         crossorigin="anonymous">
 </head>
 
-<body class="bg-light">
+<body class="default-body">
 
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <!-- navigation -->
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
 
-            <a class="navbar-brand" href="{% url 'library:home-view' %}">
-                HomeLibrary
+            <a href="{% url 'library:home-view' %}">
+                <img src="{% static 'homelibrarylogo.png' %}" alt="Logo" class="nav-logo">
             </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarMenu" aria-controls="navbarMenu"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarMenu">
                 <ul class="navbar-nav ms-auto">
 
                     <li class="nav-item">
@@ -43,24 +36,19 @@
                         <a class="nav-link" href="{% url 'library:stats-view' %}">Reading Stats</a>
                     </li>
 
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'library:logout' %}">Sign Out</a>
+                    </li>
+
                 </ul>
-            </div>
 
         </div>
     </nav>
 
-    <!-- Main Page Content -->
+    <!-- page content -->
     <main class="container">
         {% block content %}
         {% endblock %}
     </main>
-
-    <!-- Bootstrap JS Bundle -->
-    <script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrQ0aCeuHjzUxJLM7s4V0L1RHI9vGJk3G5ns0yD"
-        crossorigin="anonymous">
-    </script>
-
 </body>
 </html>

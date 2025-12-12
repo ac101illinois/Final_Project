@@ -1,0 +1,57 @@
+.default-logo {
+    width:500px;
+    height:auto;
+    padding: 0;
+}
+
+.default-body {
+    background-color: #ffffff;
+}
+
+.nav-logo {
+    height: 160px !important;
+    width: auto;
+    display: block;
+}
+
+.navbar {
+    min-height: 60px !important;
+    height: 60px !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    background-color: #fac0b9;
+}
+
+.navbar .container {
+    padding: 0 !important;
+    height: 60px !important;
+    display: flex;
+    align-items: center;
+}
+.bar-chart {
+    max-width: 450px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+
+.pie-chart {
+    max-width: 225px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.chart-img {
+    width: 100%;
+    max-width: 900px;
+    height: auto;
+}
+.chart-box {
+    display: flex;
+    justify-content: center;
+}

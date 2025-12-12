@@ -12,6 +12,8 @@ from django.contrib.auth import login
 import csv
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
+import matplotlib.pyplot as plt
+from io import BytesIO
 
 @login_required(login_url='library:login')
 def home_view(request):
@@ -279,65 +281,21 @@ def bookdetail_view(request, book_id):
 @login_required(login_url='library:login')
 def stats_view(request):
     user = request.user
-
-    # --------------------------------------------
-    # Get all progress objects for this user
-    # --------------------------------------------
     progress = ReadingProgress.objects.filter(user=user).select_related("book")
 
-    # --------------------------------------------
-    # BASIC COUNTS
-    # --------------------------------------------
+    # --- Top counters ---
     total_books = progress.count()
     currently_reading = progress.filter(status="reading").count()
     finished_books = progress.filter(status="finished").count()
     to_read_count = progress.filter(status="to_read").count()
 
-    # This year filter
+# count of books read this year
     year = datetime.now().year
     books_read_this_year = progress.filter(
         status="finished",
         date_finished__year=year
     ).count()
 
-    # Pages read this year
-    pages_read_this_year = progress.filter(
-        status="finished",
-        date_finished__year=year
-    ).aggregate(total=Sum("pages_read"))["total"] or 0
-
-    # --------------------------------------------
-    # GRAPH DATA: Books Finished Per Month
-    # --------------------------------------------
-    monthly_finished = (
-        progress.filter(status="finished", date_finished__year=year)
-        .values("date_finished__month")
-        .annotate(count=Count("id"))
-        .order_by("date_finished__month")
-    )
-
-    # Convert to 12-month array for chart.js
-    books_per_month = [0] * 12
-    for entry in monthly_finished:
-        month_index = entry["date_finished__month"] - 1
-        books_per_month[month_index] = entry["count"]
-
-    # --------------------------------------------
-    # GRAPH DATA: Pages Per Month
-    # --------------------------------------------
-    monthly_pages = (
-        progress.filter(status="finished", date_finished__year=year)
-        .values("date_finished__month")
-        .annotate(total_pages=Sum("pages_read"))
-        .order_by("date_finished__month")
-    )
-
-    pages_per_month = [0] * 12
-    for entry in monthly_pages:
-        month_index = entry["date_finished__month"] - 1
-        pages_per_month[month_index] = entry["total_pages"]
-
-    # --------------------------------------------
     return render(request, "stats.html", {
         "year": year,
         "total_books": total_books,
@@ -345,10 +303,80 @@ def stats_view(request):
         "finished_books": finished_books,
         "to_read_count": to_read_count,
         "books_read_this_year": books_read_this_year,
-        "pages_read_this_year": pages_read_this_year,
-        "books_per_month": books_per_month,
-        "pages_per_month": pages_per_month,
     })
+
+@login_required(login_url='library:login')
+def books_read_chart(request):
+    user = request.user
+    year = datetime.now().year
+
+    # Books finished this year
+    finished_books = ReadingProgress.objects.filter(
+        user=user,
+        status="finished",
+        date_finished__year=year
+    )
+
+    # Count each finished book by month
+    monthly_counts = [0] * 12
+    for progress in finished_books:
+        if progress.date_finished:
+            month_index = progress.date_finished.month - 1
+            monthly_counts[month_index] += 1
+
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    fig, ax = plt.subplots(figsize=(6, 2.5), dpi=150)
+    ax.bar(months, monthly_counts, color="#4B9CD3")
+    ax.set_title(f"Books Read in {year}", fontsize=10)
+    ax.set_ylabel("Books", fontsize=9)
+    ax.tick_params(axis="x", rotation=45, labelsize=8)
+    ax.tick_params(axis="y", labelsize=8)
+    fig.tight_layout()
+
+    buffer = BytesIO()
+    fig.savefig(buffer, format="png")
+    plt.close(fig)
+    buffer.seek(0)
+    return HttpResponse(buffer.getvalue(), content_type="image/png")
+
+
+@login_required(login_url='library:login')
+def books_status_pie_chart(request):
+
+    user = request.user
+    progress = ReadingProgress.objects.filter(user=user)
+
+    status_counts = {
+        "To Read": progress.filter(status="to_read").count(),
+        "Reading": progress.filter(status="reading").count(),
+        "Finished": progress.filter(status="finished").count(),
+    }
+
+    labels = [
+        f"To Read ({status_counts['To Read']})",
+        f"Reading ({status_counts['Reading']})",
+        f"Finished ({status_counts['Finished']})",
+    ]
+
+    sizes = [
+        status_counts["To Read"],
+        status_counts["Reading"],
+        status_counts["Finished"],
+    ]
+
+    fig = plt.figure(figsize=(4, 4), dpi=100)
+    plt.pie(sizes, labels=labels, autopct="%1.0f%%")
+
+    buffer = BytesIO()
+    fig.savefig(buffer, format="png")
+    plt.close(fig)
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type="image/png")
+
+
 
 @login_required(login_url='library:login')
 def export_mybooks_csv(request):
@@ -444,3 +472,6 @@ def export_mybooks_json(request):
     response = JsonResponse(data, json_dumps_params={"indent": 2})
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
+
+def default_view(request):
+    return render(request, "defaultpage.html")

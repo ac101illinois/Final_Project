@@ -1,10 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% load static %}
+
+{% block title %}{% endblock %}
+
+{% block page_title %}{% endblock %}
+
+{% block content %}
+<div style="text-align: center;">
+    <img src="{% static 'homelibrarylogo.png' %}"
+         alt="HomeLibrary Logo"
+         class="default-logo"
+         style="margin-bottom: 10px;">
+
+    <h2 style="text-align: center; color: #c84747; margin-bottom: 12px;">
+        A website for readers/book buyers to manage their physical library and read through their physical TBR
+    </h2>
+
+    <div style="margin-top: 8px;">
+        <a href="{% url 'library:login' %}"
+           style="padding: 10px 20px; background-color:#d8ada8; color:white; text-decoration:none; margin-right:10px;">
+            Login
+        </a>
+
+        <a href="{% url 'library:signup' %}"
+           style="padding: 10px 20px; background-color:#af6a63; color:white; text-decoration:none;">
+            Sign Up
+        </a>
+    </div>
+</div>
+{% endblock %}

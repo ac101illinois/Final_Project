@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}My Stats{% endblock %}
+{% block title %}My Reading Stats{% endblock %}
 
 {% block content %}
 
@@ -9,7 +9,7 @@
 
     <h2 class="text-center mb-4">Your Reading Stats</h2>
 
-    <!-- FOUR STAT CARDS -->
+    <!-- stats count boxes -->
     <div class="row g-4 mb-5">
 
         <div class="col-md-3">
@@ -35,90 +35,45 @@
 
         <div class="col-md-3">
             <div class="card shadow-sm text-center p-3">
-                <h5>Pages Read This Year</h5>
-                <h2>{{ pages_read_this_year }}</h2>
+                <h5>Books on your Physical TBR</h5>
+                <h2>{{ to_read_count }}</h2>
             </div>
         </div>
 
     </div>
 
-    <!-- GRAPHS ROW -->
-    <div class="row g-4">
+    <!-- graphs -->
+    <div class="row mt-4">
 
-        <!-- Books Per Month -->
-        <div class="col-md-6">
-            <div class="card shadow-sm p-3">
-                <h5 class="text-center">Books Read Per Month ({{ year }})</h5>
-                <canvas id="booksChart"></canvas>
-            </div>
+        <div class="col-12 text-center mb-4 chart-box">
+            <img src="{% url 'library:books-read-chart' %}"
+                 class="bar-chart shadow-sm rounded"
+                 alt="Books read per month this year">
         </div>
 
-        <!-- Pages Per Month -->
-        <div class="col-md-6">
-            <div class="card shadow-sm p-3">
-                <h5 class="text-center">Pages Read Per Month ({{ year }})</h5>
-                <canvas id="pagesChart"></canvas>
-            </div>
+        <div class="col-12 text-center mb-4 chart-box">
+            <img src="{% url 'library:books-pie-chart' %}"
+                 class="pie-chart shadow-sm rounded"
+                 alt="Pie chart for count of books statuses">
         </div>
 
     </div>
 
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- download buttons -->
+<div class="text-center mb-5">
 
-<script>
-const booksData = {{ books_per_month|safe }};
-const pagesData = {{ pages_per_month|safe }};
+    <a href="{% url 'library:export-mybooks-csv' %}"
+       class="btn btn-outline-primary btn-lg me-3">
+       Download CSV
+    </a>
 
-const labels = [
-    "Jan","Feb","Mar","Apr","May","Jun",
-    "Jul","Aug","Sep","Oct","Nov","Dec"
-];
+    <a href="{% url 'library:export-mybooks-json' %}"
+       class="btn btn-outline-success btn-lg">
+       Download JSON
+    </a>
 
-// BOOKS CHART
-new Chart(document.getElementById("booksChart"), {
-    type: "bar",
-    data: {
-        labels: labels,
-        datasets: [{
-            label: "Books Read",
-            data: booksData,
-            backgroundColor: "#4A6CF7"
-        }]
-    },
-});
-
-// PAGES CHART
-new Chart(document.getElementById("pagesChart"), {
-    type: "line",
-    data: {
-        labels: labels,
-        datasets: [{
-            label: "Pages Read",
-            data: pagesData,
-            borderColor: "#FF7A59",
-            fill: false,
-            tension: 0.3
-        }]
-    },
-});
-</script>
-
-<!-- DOWNLOAD BUTTONS -->
-    <div class="text-center mb-5">
-
-        <a href="{% url 'library:export-mybooks-csv' %}"
-           class="btn btn-outline-primary btn-lg me-3">
-            Download CSV
-        </a>
-
-        <a href="{% url 'library:export-mybooks-json' %}"
-           class="btn btn-outline-success btn-lg">
-            Download JSON
-        </a>
-
-    </div>
+</div>
 
 {% endblock %}
