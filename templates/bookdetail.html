@@ -55,8 +55,8 @@
                             <p><strong>{{ progress.pages_read }} / {{ book.total_pages }} pages</strong></p>
 
                             <div class="progress mb-3" style="height: 8px;">
-                                <div class="progress-bar bg-success"
-                                     style="width: {{ progress_pct }}%;">
+                                <div class="progress-bar"
+                                     style="background-color: #af6a63; width: {{ progress_pct }}%;">
                                 </div>
                             </div>
                         {% endif %}
@@ -78,7 +78,8 @@
                                 </div>
 
                                 <div class="col-auto">
-                                    <button class="btn btn-success">Update Progress</button>
+                                    <button class="btn"
+                                            style="background-color: #af6a63; color: white;">Update Progress</button>
                                 </div>
                             </div>
                         </form>
