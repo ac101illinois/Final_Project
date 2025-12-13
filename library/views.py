@@ -68,38 +68,39 @@ def home_view(request):
             data = resp.json()
             docs = data.get("docs", [])
 
+        #credit to ChatGPT for assisting me with the logic for the search function and accessing multiple APIs at a time
             for doc in docs:
-                work_key = doc.get("key")
-                if not work_key:
+                work_key = doc.get("key") #for each book that is being retrieved from the search we are getting that work's specific key
+                if not work_key: #if we are not able to retrieve the key, we continue in this loop
                     continue
 
-                work_id = work_key.replace("/works/", "")
+                work_id = work_key.replace("/works/", "") #we just want the ID so we are taking '/works/' out and replacing it with ""
 
                 # get each edition of the book they are searching
-                editions_url = f"https://openlibrary.org/works/{work_id}/editions.json?limit=50"
-                ed_resp = requests.get(editions_url)
-                if ed_resp.status_code != 200:
+                editions_url = f"https://openlibrary.org/works/{work_id}/editions.json?limit=50" #accessing each edition based off the work_id we extracted
+                ed_resp = requests.get(editions_url) #calling each edition per book that is searched
+                if ed_resp.status_code != 200: #if this call does not succeed, we will continue in this for loop
                     continue
 
-                ed_data = ed_resp.json()
+                ed_data = ed_resp.json() #creating dictionary from the editions we retrieved
                 edition_entries = ed_data.get("entries", [])
 
-                editions_list = []
-                for e in edition_entries:
-                    cover_id = e.get("covers", [None])[0]
+                editions_list = [] #creating empty list for the finished entries with covers
+                for e in edition_entries: #making another for loop to go through the editions we found
+                    cover_id = e.get("covers", [None])[0] #if there is a cover available for that edition, use the first one. If not, do not retrieve one
 
-                    editions_list.append({
-                        "cover": f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg" if cover_id else None,
+                    editions_list.append({ #filling edition list with this information from each edition
+                        "cover": f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg" if cover_id else None, #accessing cover api to get cover
                         "format": e.get("physical_format"),
                         "pages": e.get("number_of_pages"),
                         "publish_date": e.get("publish_date"),
                         "edition_key": e.get("key").replace("/books/", "")
                     })
 
-                search_results.append({
+                search_results.append({ #filling the search results
                     "title": doc.get("title"),
                     "author": ", ".join(doc.get("author_name", [])),
-                    "editions": editions_list[:6]
+                    "editions": editions_list[:6] #stopping at index six so we don't get overwhelmed by so many editions
                 })
 
 # Dashboard displaying the books in the user's "my books" page
