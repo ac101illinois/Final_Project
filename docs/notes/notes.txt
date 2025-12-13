@@ -1,8 +1,21 @@
-Key Lessons Learned:
+1. Key Lessons Learned:
 
 I had never done anything like what we've learned in class before, so I am taking away a lot! Mainly I've
 learned how all the models, views and urls work with each other and what they specifically do for the website.
 
 I've also learned a lot about pycharm and how to utulize the terminal effectively.
 
-For this specific project,
+For this specific project, I learned a lot about bootstrap and how to implement CSS effectively in my site.
+
+2. Challenges Faced:
+
+I had a really hard time with my UI, expecially since I was wanting to access multiple APIs and display the
+results for each of them on my site. There are still some things I want to change, but I am trying not to be
+picky at this point.
+
+3. Future Improvements:
+
+I would love to expand the functiions available on my website. I want to make it so that the user can add
+and delete custom lists, add/edit the dates a book was read, and add a spinner page do they can decide
+their next read.
+
