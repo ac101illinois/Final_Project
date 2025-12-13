@@ -5,11 +5,11 @@
 
 <div class="container mt-4">
 
-    <!-- Book Card -->
+    <!-- separate book card -->
     <div class="card shadow-sm">
         <div class="row g-0">
 
-            <!-- Cover -->
+            <!-- cover displayed -->
             <div class="col-md-4">
                 {% if book.cover %}
                     <img src="{{ book.cover }}" class="img-fluid rounded-start" alt="{{ book.title }}">
@@ -18,14 +18,13 @@
                 {% endif %}
             </div>
 
-            <!-- Details -->
             <div class="col-md-8">
                 <div class="card-body">
 
                     <h2 class="card-title">{{ book.title }}</h2>
                     <p class="text-muted mb-2">{{ book.author }}</p>
 
-                    <!-- STATUS BADGE -->
+                    <!-- status -->
                     {% if progress %}
                         {% if progress.status == "reading" %}
                             <span class="badge bg-primary">Currently Reading</span>
@@ -40,7 +39,7 @@
 
                     <hr>
 
-                    <!-- DESCRIPTION -->
+                    <!-- description -->
                     {% if book.description %}
                         <p>{{ book.description }}</p>
                     {% else %}
@@ -49,7 +48,7 @@
 
                     <hr>
 
-                    <!-- PROGRESS SECTION (ONLY IF READING) -->
+                    <!-- progress if the book is being read -->
                     {% if progress and progress.status == "reading" %}
                         {% if book.total_pages %}
                             <p><strong>{{ progress.pages_read }} / {{ book.total_pages }} pages</strong></p>
@@ -61,7 +60,7 @@
                             </div>
                         {% endif %}
 
-                        <!-- UPDATE PROGRESS FORM -->
+                        <!-- update progress -->
                         <form method="POST" action="{% url 'library:mybooks-view' %}">
                             {% csrf_token %}
                             <input type="hidden" name="book_id" value="{{ book.id }}">
@@ -87,7 +86,7 @@
                         <hr>
                     {% endif %}
 
-                    <!-- STATUS DROPDOWN (always available) -->
+                    <!-- status dropdown -->
                     <form method="POST" action="{% url 'library:mybooks-view' %}">
                         {% csrf_token %}
                         <input type="hidden" name="book_id" value="{{ book.id }}">

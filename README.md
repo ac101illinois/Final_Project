@@ -33,4 +33,6 @@ Integrate External APIs
 Data Presentation & Export
 User Authentication for External Users
 
-Screenshots of the app and deployed version
+Screenshots of the app and deployed version:
+
+these are located in docs/screenshots
