@@ -100,7 +100,7 @@ def home_view(request):
                 search_results.append({ #filling the search results
                     "title": doc.get("title"),
                     "author": ", ".join(doc.get("author_name", [])),
-                    "editions": editions_list[:6] #stopping at index six so we don't get overwhelmed by so many editions
+                    "editions": editions_list[:10] #stopping at index six so we don't get overwhelmed by so many editions
                 })
 
 # Dashboard displaying the books in the user's "my books" page
